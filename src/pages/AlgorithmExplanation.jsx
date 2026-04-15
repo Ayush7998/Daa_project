@@ -59,9 +59,12 @@ const AlgorithmExplanation = () => {
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity">
                 <Zap size={100} />
               </div>
-              <h4 className="text-lg font-bold text-yellow-400 mb-2 flex items-center gap-2"><Zap size={20}/> Mutation & Simulated Annealing</h4>
+              <h4 className="text-lg font-bold text-yellow-400 mb-2 flex items-center gap-2"><Zap size={20}/> Original vs Modified Approach (Mutation)</h4>
               <p className="text-slate-300 text-sm mb-4">
-                To prevent the algorithm from converging prematurely at a local maximum, we randomly alter some child properties based on the <strong>Mutation Rate</strong>. If Dynamic Mutation is enabled, the rate decays linearly (simulated annealing), allowing broad exploration early on, and highly localized refinement toward the final generations.
+                To comply with the assignment guidelines, this dashboard compares two Genetic Algorithm approaches to prevent premature local maximum convergence:
+                <br/><br/>
+                <strong className="text-teal-300 font-bold">Original GA:</strong> Uses a static, fixed <strong>Mutation Rate</strong> across all generations.<br/>
+                <strong className="text-green-300 font-bold">Modified GA (Simulated Annealing):</strong> Uses a dynamic mutation rate that decays linearly as generations progress. This allows broad exploration early on, and highly localized refinement toward the final generations.
               </p>
               <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden flex">
                 <div className="bg-yellow-400 h-full w-full" style={{ background: 'linear-gradient(90deg, #facc15 0%, #1e293b 100%)'}}></div>

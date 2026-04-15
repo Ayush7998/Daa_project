@@ -23,18 +23,13 @@ export const SimulationProvider = ({ children }) => {
   // Simulation State
   const [gaProgress, setGaProgress] = useState({
     generation: 0,
-    bestFitness: -Infinity,
-    bestChromosome: [],
-    history: [], // For charts: {generation, fitness}
+    originalBestFitness: -Infinity,
+    originalBestChromosome: [],
+    modifiedBestFitness: -Infinity,
+    modifiedBestChromosome: [],
+    history: [], // For charts: {generation, originalFitness, modifiedFitness}
     isRunning: false,
     speed: 500, // ms per generation
-  });
-
-  const [bfProgress, setBfProgress] = useState({
-    bestFitness: -Infinity,
-    bestChromosome: [],
-    isCalculating: false,
-    done: false,
   });
 
   // Ref to hold simulation loops
@@ -96,69 +91,14 @@ export const SimulationProvider = ({ children }) => {
     setGrid(newGrid);
     
     // Reset simulation states when grid changes
-    setGaProgress(prev => ({ ...prev, generation: 0, bestFitness: -Infinity, history: [], isRunning: false }));
-    setBfProgress(prev => ({ ...prev, bestFitness: -Infinity, done: false }));
+    setGaProgress(prev => ({ 
+      ...prev, generation: 0, 
+      originalBestFitness: -Infinity, originalBestChromosome: [], 
+      modifiedBestFitness: -Infinity, modifiedBestChromosome: [], 
+      history: [], isRunning: false 
+    }));
   }, [config.gridSize, dataset]);
 
-
-  // Brute Force processing (async unblocking via chunks)
-  const runBruteForce = async () => {
-    setBfProgress(prev => ({ ...prev, isCalculating: true, done: false, bestFitness: -Infinity, bestChromosome: [] }));
-    
-    // find open cells
-    const openCells = [];
-    for (let r = 0; r < grid.length; r++) {
-      for (let c = 0; c < grid[r].length; c++) {
-        if (grid[r][c] !== -1) openCells.push({r, c});
-      }
-    }
-
-    if (openCells.length < config.numTrees) {
-      setBfProgress(prev => ({ ...prev, isCalculating: false, done: true }));
-      return;
-    }
-
-    let maxFitness = -Infinity;
-    let bestComb = [];
-    
-    const generator = generateCombinations(openCells, config.numTrees);
-    
-    // Process in chunks to unblock UI
-    const processChunk = () => {
-      return new Promise((resolve) => {
-        let i = 0;
-        let iter = generator.next();
-        
-        while (!iter.done && i < 1000) {
-          const fitness = calculateFitness(iter.value, grid, config);
-          if (fitness > maxFitness) {
-            maxFitness = fitness;
-            bestComb = iter.value;
-          }
-          i++;
-          iter = generator.next();
-        }
-        
-        if (iter.done) {
-          resolve({ done: true, maxFitness, bestComb });
-        } else {
-          // Yield to main thread
-          setTimeout(() => {
-            processChunk().then(resolve);
-          }, 0);
-        }
-      });
-    };
-
-    const res = await processChunk();
-    setBfProgress(prev => ({
-      ...prev,
-      bestFitness: res.maxFitness,
-      bestChromosome: res.bestComb,
-      isCalculating: false,
-      done: true
-    }));
-  };
 
   // GA Execution
   const toggleGaSimulation = () => {
@@ -167,8 +107,11 @@ export const SimulationProvider = ({ children }) => {
       setGaProgress(prev => ({ ...prev, isRunning: false }));
     } else {
       if (gaProgress.generation === 0) {
-        // Start fresh
-        let currentPop = generateInitialPopulation(config.gridSize, config);
+        // Start fresh: clone initial pop so both start exactly identically
+        let initialPop = generateInitialPopulation(config.gridSize, config);
+        let originalPop = JSON.parse(JSON.stringify(initialPop));
+        let modifiedPop = JSON.parse(JSON.stringify(initialPop));
+        
         let gen = 0;
         let history = [];
         
@@ -181,24 +124,38 @@ export const SimulationProvider = ({ children }) => {
             return;
           }
           
-          let mutationRate = config.initialMutationRate;
+          let modifiedMutationRate = config.initialMutationRate;
+          let originalMutationRate = config.initialMutationRate; // Original GA is fixed config
+
           if (config.dynamicMutation) {
-            // Drop mutation rate linearly over time
-            mutationRate = config.initialMutationRate * (1 - gen / config.generations);
+            // Drop mutation rate linearly over time for modified GA ONLY
+            modifiedMutationRate = config.initialMutationRate * (1 - gen / config.generations);
           }
 
-          const res = runGeneticAlgorithmStep(currentPop, grid, config, mutationRate);
-          currentPop = res.newPopulation;
+          const resOriginal = runGeneticAlgorithmStep(originalPop, grid, config, originalMutationRate);
+          originalPop = resOriginal.newPopulation;
+
+          const resModified = runGeneticAlgorithmStep(modifiedPop, grid, config, modifiedMutationRate);
+          modifiedPop = resModified.newPopulation;
+          
           gen++;
-          history.push({ generation: gen, fitness: res.bestFitness, bf: null }); // bf updated later in charts component
+          history.push({ 
+            generation: gen, 
+            originalFitness: resOriginal.bestFitness, 
+            modifiedFitness: resModified.bestFitness,
+            bf: null 
+          });
           
           setGaProgress(prev => ({
             ...prev,
             generation: gen,
-            bestFitness: res.bestFitness,
-            bestChromosome: res.bestChromosome,
-            history: [...history],
-            currentMutationRate: mutationRate
+            originalBestFitness: resOriginal.bestFitness,
+            originalBestChromosome: resOriginal.bestChromosome,
+            originalCurrentMutationRate: originalMutationRate,
+            modifiedBestFitness: resModified.bestFitness,
+            modifiedBestChromosome: resModified.bestChromosome,
+            modifiedCurrentMutationRate: modifiedMutationRate,
+            history: [...history]
           }));
           
         }, gaProgress.speed);
@@ -222,7 +179,7 @@ export const SimulationProvider = ({ children }) => {
   return (
     <SimulationContext.Provider value={{
       dataset, config, grid, updateConfig, handleFileUpload, generateGrid,
-      gaProgress, bfProgress, runBruteForce, toggleGaSimulation, changeSpeed
+      gaProgress, toggleGaSimulation, changeSpeed
     }}>
       {children}
     </SimulationContext.Provider>

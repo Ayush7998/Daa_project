@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Play, Square, FastForward, Calculator, Activity } from 'lucide-react';
 
 const SimulationPage = () => {
-  const { grid, config, gaProgress, bfProgress, toggleGaSimulation, runBruteForce, changeSpeed } = useContext(SimulationContext);
+  const { grid, config, gaProgress, toggleGaSimulation, changeSpeed } = useContext(SimulationContext);
 
   if (grid.length === 0) {
     return (
@@ -17,14 +17,11 @@ const SimulationPage = () => {
     );
   }
 
-  // Combine GA history and Brute Force target line for Recharts
-  const chartData = gaProgress.history.map(point => ({
-    ...point,
-    bfFitness: bfProgress.done ? bfProgress.bestFitness : null
-  }));
+  const chartData = gaProgress.history;
 
-  const accuracy = bfProgress.done && bfProgress.bestFitness > 0 
-    ? Math.min(100, Math.max(0, (gaProgress.bestFitness / bfProgress.bestFitness) * 100)).toFixed(2)
+  // Simple improvement metric over base
+  const comparisonDiff = gaProgress.originalBestFitness > 0 
+    ? (((gaProgress.modifiedBestFitness - gaProgress.originalBestFitness) / gaProgress.originalBestFitness) * 100).toFixed(1)
     : 0;
 
   return (
@@ -32,23 +29,11 @@ const SimulationPage = () => {
       <header className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-400 to-green-500 bg-clip-text text-transparent">Simulation Dashboard</h2>
-          <p className="text-slate-400 mt-1">Live GA generation evolution vs Brute Force baseline.</p>
+          <p className="text-slate-400 mt-1">Live competitive simulation: Original GA vs Modified GA.</p>
         </div>
         
         {/* Global Controls */}
         <div className="flex gap-4">
-           {/* BF Control */}
-           <button 
-            onClick={runBruteForce}
-            disabled={bfProgress.isCalculating || bfProgress.done}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold shadow-lg transition-all ${
-              bfProgress.isCalculating ? 'bg-orange-600/50 cursor-not-allowed' : bfProgress.done ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-500 text-white'
-            }`}
-          >
-            <Calculator size={18} />
-            {bfProgress.isCalculating ? 'Calculating...' : bfProgress.done ? 'BF Complete' : 'Run Brute Force'}
-          </button>
-
           {/* GA Control */}
           <button 
             onClick={toggleGaSimulation}
@@ -90,23 +75,30 @@ const SimulationPage = () => {
             </div>
           </div>
           
-          <div className="w-full flex items-center justify-center p-2 bg-slate-900/50 rounded-lg mb-4">
+          <div className="w-full flex flex-col items-center justify-center p-2 bg-slate-900/50 rounded-lg mb-4">
+             <span className="text-xs text-slate-500 mb-2 font-semibold tracking-wider">Displaying Modified GA Placements</span>
              <div className="w-full max-w-sm">
-                <GridVisualizer grid={grid} chromosome={gaProgress.bestChromosome} config={config} />
+                <GridVisualizer grid={grid} chromosome={gaProgress.modifiedBestChromosome} config={config} />
              </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mt-auto">
-            <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-              <div className="text-xs text-slate-400 uppercase">Best Fitness</div>
-              <div className="text-2xl font-mono text-white">
-                {gaProgress.bestFitness !== -Infinity ? gaProgress.bestFitness : '-'}
+          <div className="grid grid-cols-2 gap-3 mt-auto">
+            <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+              <div className="flex justify-between items-center mb-1">
+                <div className="text-xs text-slate-400 uppercase">Original GA Fitness</div>
+                <div className="text-xs text-slate-500 font-mono">Fixed Mut.</div>
+              </div>
+              <div className="text-xl font-mono text-white">
+                {gaProgress.originalBestFitness !== -Infinity ? gaProgress.originalBestFitness : '-'}
               </div>
             </div>
-            <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-              <div className="text-xs text-slate-400 uppercase">Mutation Rate</div>
-              <div className="text-2xl font-mono text-white">
-                {gaProgress.currentMutationRate !== undefined ? (gaProgress.currentMutationRate * 100).toFixed(1) + '%' : '-'}
+            <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+              <div className="flex justify-between items-center mb-1">
+                <div className="text-xs text-slate-400 uppercase">Modified GA Fitness</div>
+                <div className="text-xs text-yellow-500 font-mono">Dyn Mut.</div>
+              </div>
+              <div className="text-xl font-mono text-white">
+                {gaProgress.modifiedBestFitness !== -Infinity ? gaProgress.modifiedBestFitness : '-'}
               </div>
             </div>
           </div>
@@ -115,29 +107,30 @@ const SimulationPage = () => {
         {/* Brute Force UI */}
         <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg flex flex-col h-full">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold flex items-center gap-2 text-orange-400">
-              Brute Force Baseline
-              {bfProgress.isCalculating && <span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span></span>}
+            <h3 className="text-xl font-bold flex items-center gap-2 text-slate-300">
+              Original GA Baseline
+              {gaProgress.isRunning && <span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-slate-500"></span></span>}
             </h3>
           </div>
           
-          <div className="w-full flex items-center justify-center p-2 bg-slate-900/50 rounded-lg mb-4">
+          <div className="w-full flex flex-col items-center justify-center p-2 bg-slate-900/50 rounded-lg mb-4">
+             <span className="text-xs text-slate-500 mb-2 font-semibold tracking-wider">Displaying Original GA Placements</span>
              <div className="w-full max-w-sm">
-                <GridVisualizer grid={grid} chromosome={bfProgress.bestChromosome} config={config} />
+                <GridVisualizer grid={grid} chromosome={gaProgress.originalBestChromosome} config={config} />
              </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mt-auto">
             <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-              <div className="text-xs text-slate-400 uppercase">Optimal Fitness</div>
+              <div className="text-xs text-slate-400 uppercase">Original Fitness</div>
               <div className="text-2xl font-mono text-white">
-                {bfProgress.done ? bfProgress.bestFitness : (bfProgress.isCalculating ? '...' : '-')}
+                {gaProgress.originalBestFitness !== -Infinity ? gaProgress.originalBestFitness : '-'}
               </div>
             </div>
             <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-              <div className="text-xs text-slate-400 uppercase">GA Accuracy</div>
-              <div className={`text-2xl font-mono ${accuracy >= 90 ? 'text-green-400' : accuracy > 70 ? 'text-yellow-400' : 'text-red-400'}`}>
-                {bfProgress.done && gaProgress.generation > 0 ? `${accuracy}%` : '-'}
+              <div className="text-xs text-slate-400 uppercase">Mod Improvement</div>
+              <div className={`text-2xl font-mono ${comparisonDiff > 0 ? 'text-green-400' : comparisonDiff < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                {gaProgress.generation > 0 ? `${comparisonDiff}%` : '-'}
               </div>
             </div>
           </div>
@@ -151,8 +144,8 @@ const SimulationPage = () => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis dataKey="generation" stroke="#94a3b8" fontSize={12} />
-            <YAxis stroke="#94a3b8" fontSize={12} />
+            <XAxis dataKey="generation" stroke="#94a3b8" fontSize={12} minTickGap={20} interval="preserveEnd" />
+            <YAxis stroke="#94a3b8" fontSize={12} domain={['dataMin - 10', 'dataMax + 10']} />
             <Tooltip 
               contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#f8fafc' }}
               itemStyle={{ color: '#2dd4bf' }}
@@ -160,16 +153,23 @@ const SimulationPage = () => {
             <Legend />
             <Line 
               type="monotone" 
-              dataKey="fitness" 
-              name="GA Best Fitness"
+              dataKey="originalFitness" 
+              name="Original GA Best"
+              stroke="#94a3b8" 
+              strokeWidth={2}
+              activeDot={{ r: 4 }} 
+              isAnimationActive={false}
+              strokeDasharray="4 4"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="modifiedFitness" 
+              name="Modified GA Best"
               stroke="#2dd4bf" 
               strokeWidth={3}
               activeDot={{ r: 8 }} 
               isAnimationActive={false}
             />
-            {bfProgress.done && (
-              <ReferenceLine y={bfProgress.bestFitness} label={{ position: 'top', value: 'BF Optimal', fill: '#f97316', fontSize: 12 }} stroke="#f97316" strokeDasharray="3 3" />
-            )}
           </LineChart>
         </ResponsiveContainer>
       </div>

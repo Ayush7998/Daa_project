@@ -54,17 +54,18 @@ const ConfigPanel = () => {
 
             <div className="flex items-center justify-between bg-slate-700/30 p-4 rounded-lg border border-slate-600 mt-4 md:col-span-2">
               <div>
-                <h4 className="text-sm font-medium text-slate-200">Dynamic Mutation Rate</h4>
-                <p className="text-xs text-slate-400 mt-1">Linearly decay mutation rate from initial to 0 as generations progress (simulated annealing approach).</p>
+                <h4 className="text-sm font-medium text-slate-200">Dynamic Mutation Rate (Modified Approach)</h4>
+                <p className="text-xs text-slate-400 mt-1">This setting is locked on for the Modified GA to provide a direct comparison against the Original GA (which uses a purely static initial rate).</p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex items-center cursor-not-allowed">
                 <input 
                   type="checkbox" 
                   className="sr-only peer" 
-                  checked={config.dynamicMutation}
-                  onChange={(e) => updateConfig('dynamicMutation', e.target.checked)}
+                  checked={true}
+                  disabled={true}
+                  readOnly
                 />
-                <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-500"></div>
+                <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-700 opacity-75"></div>
               </label>
             </div>
 

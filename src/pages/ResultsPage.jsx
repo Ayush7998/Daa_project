@@ -6,16 +6,16 @@ import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, B
 import { Download, Award, TrendingUp, AlertTriangle } from 'lucide-react';
 
 const ResultsPage = () => {
-  const { grid, config, gaProgress, bfProgress } = useContext(SimulationContext);
+  const { grid, config, gaProgress } = useContext(SimulationContext);
 
   const { detailedFitness, isComplete } = useMemo(() => {
-    if (gaProgress.generation === 0 || !gaProgress.bestChromosome?.length) return { isComplete: false };
+    if (gaProgress.generation === 0 || !gaProgress.modifiedBestChromosome?.length) return { isComplete: false };
     
     return {
       isComplete: true, // we can show partial
-      detailedFitness: calculateFitness(gaProgress.bestChromosome, grid, config, true)
+      detailedFitness: calculateFitness(gaProgress.modifiedBestChromosome, grid, config, true)
     };
-  }, [gaProgress.bestChromosome, grid, config]);
+  }, [gaProgress.modifiedBestChromosome, grid, config]);
 
   if (!isComplete) {
     return (
@@ -37,12 +37,17 @@ const ResultsPage = () => {
   ].filter(d => d.value > 0);
 
   const barData = [
-    { name: 'Genetic Alg', fitness: totalFitness },
-    { name: 'Brute Force', fitness: bfProgress.done ? bfProgress.bestFitness : 0 }
+    { name: 'Original GA', fitness: gaProgress.originalBestFitness !== -Infinity ? gaProgress.originalBestFitness : 0 },
+    { name: 'Modified GA', fitness: totalFitness }
   ];
 
-  const accuracy = bfProgress.done && bfProgress.bestFitness > 0 
-    ? Math.min(100, Math.max(0, (totalFitness / bfProgress.bestFitness) * 100)).toFixed(1)
+  const improvement = gaProgress.originalBestFitness > 0 
+    ? (((totalFitness - gaProgress.originalBestFitness) / gaProgress.originalBestFitness) * 100).toFixed(1)
+    : 'N/A';
+
+  const firstGenFitness = gaProgress.history.length > 0 ? gaProgress.history[0].modifiedFitness : 0;
+  const gaAccuracy = totalFitness !== 0
+    ? ((firstGenFitness / totalFitness) * 100).toFixed(1)
     : 'N/A';
 
   return (
@@ -59,19 +64,22 @@ const ResultsPage = () => {
           </button>
         </header>
 
-        {/* Summary Card */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
           <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl flex flex-col gap-2 shadow-lg">
-            <div className="text-slate-400 flex items-center gap-2 text-sm uppercase tracking-wide"><Award size={16} className="text-teal-400"/> GA Fitness</div>
+            <div className="text-slate-400 flex items-center gap-2 text-sm uppercase tracking-wide"><Award size={16} className="text-teal-400"/> Modified GA Fitness</div>
             <div className="text-4xl font-bold text-white">{totalFitness}</div>
           </div>
           <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl flex flex-col gap-2 shadow-lg">
-            <div className="text-slate-400 flex items-center gap-2 text-sm uppercase tracking-wide"><Award size={16} className="text-orange-400"/> BF Optimal</div>
-            <div className="text-4xl font-bold text-white">{bfProgress.done ? bfProgress.bestFitness : '-'}</div>
+            <div className="text-slate-400 flex items-center gap-2 text-sm uppercase tracking-wide"><Award size={16} className="text-slate-400"/> Original Base</div>
+            <div className="text-4xl font-bold text-white">{gaProgress.originalBestFitness !== -Infinity ? gaProgress.originalBestFitness : '-'}</div>
           </div>
           <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl flex flex-col gap-2 shadow-lg">
-            <div className="text-slate-400 flex items-center gap-2 text-sm uppercase tracking-wide"><TrendingUp size={16} className="text-green-400"/> Accuracy</div>
-            <div className="text-4xl font-bold text-white">{accuracy}%</div>
+            <div className="text-slate-400 flex items-center gap-2 text-sm uppercase tracking-wide"><TrendingUp size={16} className="text-green-400"/> Improvement</div>
+            <div className={`text-4xl font-bold ${improvement > 0 ? 'text-green-400' : 'text-slate-300'}`}>{improvement !== 'N/A' ? `${improvement}%` : '-'}</div>
+          </div>
+          <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl flex flex-col gap-2 shadow-lg">
+            <div className="text-slate-400 flex items-center gap-2 text-sm uppercase tracking-wide"><TrendingUp size={16} className="text-teal-300"/> Accuracy</div>
+            <div className="text-4xl font-bold text-white">{gaAccuracy !== 'N/A' ? `${gaAccuracy}%` : '-'}</div>
           </div>
           <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl flex flex-col gap-2 shadow-lg">
             <div className="text-slate-400 flex items-center gap-2 text-sm uppercase tracking-wide"><AlertTriangle size={16} className="text-yellow-400"/> Generations</div>
@@ -83,10 +91,10 @@ const ResultsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg flex flex-col">
-            <h3 className="text-xl font-bold mb-4 border-b border-slate-700 pb-2">Final Grid Placement</h3>
+            <h3 className="text-xl font-bold mb-4 border-b border-slate-700 pb-2">Final Grid Placement (Mod GA)</h3>
             <div className="flex-1 flex items-center justify-center bg-slate-900/50 rounded-lg p-4">
                <div className="w-full max-w-[250px]">
-                 <GridVisualizer grid={grid} chromosome={gaProgress.bestChromosome} config={config} />
+                 <GridVisualizer grid={grid} chromosome={gaProgress.modifiedBestChromosome} config={config} />
                </div>
             </div>
           </div>
@@ -134,13 +142,12 @@ const ResultsPage = () => {
                   />
                   <Bar dataKey="fitness" radius={[4, 4, 0, 0]}>
                     {barData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 0 ? '#2dd4bf' : '#f97316'} />
+                      <Cell key={`cell-${index}`} fill={index === 0 ? '#94a3b8' : '#2dd4bf'} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            {!bfProgress.done && <p className="text-xs text-orange-400 text-center mt-2">Brute Force baseline not calculated yet.</p>}
           </div>
 
         </div>

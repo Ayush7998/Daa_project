@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { TreePine, ArrowRight, GitBranch, Crosshair } from 'lucide-react';
+import { TreePine, ArrowRight, Activity, Calculator } from 'lucide-react';
 
 const HomePage = () => {
   return (
@@ -14,13 +14,13 @@ const HomePage = () => {
           <TreePine size={48} className="text-teal-400" />
         </div>
         
-        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-teal-400 to-green-500 bg-clip-text text-transparent">
-          Urban Tree Placement<br />Optimization
+        <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-6">
+          <span className="bg-gradient-to-r from-teal-400 to-green-500 bg-clip-text text-transparent">Urban Tree Optimization</span>
         </h1>
         
-        <p className="text-xl text-slate-300 mb-10 leading-relaxed">
-          A Data Structures & Algorithms project demonstrating the power of <strong className="text-slate-100">Genetic Algorithms</strong> versus <strong className="text-slate-100">Brute Force</strong>. 
-          Maximize shade, minimize overlap, and optimize urban greenspace automatically based on the NYC Tree Census format!
+        <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
+          A Data Structures & Algorithms project demonstrating the power of <strong className="text-slate-100">Original GA</strong> versus <strong className="text-slate-100">Modified GA</strong>. 
+          Upload city tree data, generate a grid, and watch evolutionary algorithms compete live.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -33,23 +33,19 @@ const HomePage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-20 text-left">
-          <div className="bg-slate-800/50 border border-slate-700 p-6 rounded-xl backdrop-blur-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <GitBranch className="text-green-400" />
-              <h3 className="text-lg font-bold">Genetic Algorithm</h3>
-            </div>
-            <p className="text-slate-400 text-sm">
-              Simulates evolution using selection, crossover, and mutation to find near-optimal tree placements rapidly across massive state spaces.
+          <div className="bg-slate-800/50 border border-slate-700 p-6 rounded-xl backdrop-blur-sm shadow-md transition-colors hover:border-slate-500">
+            <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center mb-4"><Calculator className="text-slate-400"/></div>
+            <h3 className="text-lg font-bold text-slate-200">Original GA</h3>
+            <p className="text-slate-400 text-sm mt-2">
+              A baseline evolutionary approach featuring a static mutation rate across all generations.
             </p>
           </div>
           
-          <div className="bg-slate-800/50 border border-slate-700 p-6 rounded-xl backdrop-blur-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <Crosshair className="text-orange-400" />
-              <h3 className="text-lg font-bold">Brute Force Search</h3>
-            </div>
-            <p className="text-slate-400 text-sm">
-              Calculates absolutely every combination to find the mathematical global optimum, providing a baseline for GA accuracy—but scales poorly.
+          <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl hover:border-teal-500 transition-colors shadow-lg cursor-default">
+            <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center mb-4"><Activity className="text-teal-400"/></div>
+            <h3 className="text-lg font-bold text-teal-300">Modified GA</h3>
+            <p className="text-sm text-slate-400 mt-2">
+              Enhanced algorithm utilizing Simulated Annealing (dynamic mutation rate) to balance thorough exploration with focused local accuracy.
             </p>
           </div>
         </div>
