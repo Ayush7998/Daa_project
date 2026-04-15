@@ -1,0 +1,22 @@
+[
+  {"tree_id": 1, "status": "Alive", "latitude": 40.7128, "longitude": -74.0060, "spc_common": "London planetree"},
+  {"tree_id": 2, "status": "Alive", "latitude": 40.7130, "longitude": -74.0055, "spc_common": "Honeylocust"},
+  {"tree_id": 3, "status": "Dead", "latitude": 40.7132, "longitude": -74.0050, "spc_common": "Unknown"},
+  {"tree_id": 4, "status": "Alive", "latitude": 40.7125, "longitude": -74.0045, "spc_common": "Ginkgo"},
+  {"tree_id": 5, "status": "Stump", "latitude": 40.7135, "longitude": -74.0040, "spc_common": "Unknown"},
+  {"tree_id": 6, "status": "Alive", "latitude": 40.7120, "longitude": -74.0065, "spc_common": "Pin oak"},
+  {"tree_id": 7, "status": "Alive", "latitude": 40.7140, "longitude": -74.0035, "spc_common": "London planetree"},
+  {"tree_id": 8, "status": "Alive", "latitude": 40.7142, "longitude": -74.0030, "spc_common": "Littleleaf linden"},
+  {"tree_id": 9, "status": "Dead", "latitude": 40.7145, "longitude": -74.0025, "spc_common": "Unknown"},
+  {"tree_id": 10, "status": "Alive", "latitude": 40.7115, "longitude": -74.0070, "spc_common": "Red maple"},
+  {"tree_id": 11, "status": "Alive", "latitude": 40.7150, "longitude": -74.0020, "spc_common": "American elm"},
+  {"tree_id": 12, "status": "Stump", "latitude": 40.7155, "longitude": -74.0015, "spc_common": "Unknown"},
+  {"tree_id": 13, "status": "Alive", "latitude": 40.7110, "longitude": -74.0075, "spc_common": "Zelkova"},
+  {"tree_id": 14, "status": "Alive", "latitude": 40.7160, "longitude": -74.0010, "spc_common": "Japanese tree lilac"},
+  {"tree_id": 15, "status": "Alive", "latitude": 40.7105, "longitude": -74.0080, "spc_common": "Callery pear"},
+  {"tree_id": 16, "status": "Dead", "latitude": 40.7165, "longitude": -74.0005, "spc_common": "Unknown"},
+  {"tree_id": 17, "status": "Alive", "latitude": 40.7100, "longitude": -74.0085, "spc_common": "London planetree"},
+  {"tree_id": 18, "status": "Alive", "latitude": 40.7170, "longitude": -74.0000, "spc_common": "Honeylocust"},
+  {"tree_id": 19, "status": "Stump", "latitude": 40.7095, "longitude": -74.0090, "spc_common": "Unknown"},
+  {"tree_id": 20, "status": "Alive", "latitude": 40.7175, "longitude": -73.9995, "spc_common": "Pin oak"}
+]
