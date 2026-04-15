@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { SimulationContext } from '../context/SimulationContext';
 import GridVisualizer from '../components/GridVisualizer';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Play, Square, FastForward, Calculator, Activity } from 'lucide-react';
 
 const SimulationPage = () => {
@@ -17,9 +16,6 @@ const SimulationPage = () => {
     );
   }
 
-  const chartData = gaProgress.history;
-
-  // Simple improvement metric over base
   const comparisonDiff = gaProgress.originalBestFitness > 0 
     ? (((gaProgress.modifiedBestFitness - gaProgress.originalBestFitness) / gaProgress.originalBestFitness) * 100).toFixed(1)
     : 0;
@@ -120,17 +116,11 @@ const SimulationPage = () => {
              </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mt-auto">
-            <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-              <div className="text-xs text-slate-400 uppercase">Original Fitness</div>
-              <div className="text-2xl font-mono text-white">
+          <div className="mt-auto">
+            <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700 text-center">
+              <div className="text-xs text-slate-400 uppercase mb-1">Baseline Fitness</div>
+              <div className="text-3xl font-mono text-white">
                 {gaProgress.originalBestFitness !== -Infinity ? gaProgress.originalBestFitness : '-'}
-              </div>
-            </div>
-            <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-              <div className="text-xs text-slate-400 uppercase">Mod Improvement</div>
-              <div className={`text-2xl font-mono ${comparisonDiff > 0 ? 'text-green-400' : comparisonDiff < 0 ? 'text-red-400' : 'text-slate-400'}`}>
-                {gaProgress.generation > 0 ? `${comparisonDiff}%` : '-'}
               </div>
             </div>
           </div>
@@ -138,40 +128,15 @@ const SimulationPage = () => {
 
       </div>
 
-      {/* Chart */}
-      <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg h-80 mt-2">
-        <h3 className="text-lg font-bold mb-4">Fitness Progress</h3>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis dataKey="generation" stroke="#94a3b8" fontSize={12} minTickGap={20} interval="preserveEnd" />
-            <YAxis stroke="#94a3b8" fontSize={12} domain={['dataMin - 10', 'dataMax + 10']} />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#f8fafc' }}
-              itemStyle={{ color: '#2dd4bf' }}
-            />
-            <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="originalFitness" 
-              name="Original GA Best"
-              stroke="#94a3b8" 
-              strokeWidth={2}
-              activeDot={{ r: 4 }} 
-              isAnimationActive={false}
-              strokeDasharray="4 4"
-            />
-            <Line 
-              type="monotone" 
-              dataKey="modifiedFitness" 
-              name="Modified GA Best"
-              stroke="#2dd4bf" 
-              strokeWidth={3}
-              activeDot={{ r: 8 }} 
-              isAnimationActive={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+      {/* Dramatic Improvement Display Container */}
+      <div className="bg-slate-800 border border-slate-700 p-8 rounded-xl shadow-[0_0_20px_rgba(45,212,191,0.05)] mt-4 flex flex-col items-center justify-center text-center">
+        <div className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
+          <Activity size={20} className="text-teal-400" />
+          Mod Improvement vs Original Baseline
+        </div>
+        <div className={`text-6xl md:text-8xl font-black tracking-tight drop-shadow-2xl ${comparisonDiff > 0 ? 'text-green-400' : comparisonDiff < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+          {gaProgress.generation > 0 ? `${comparisonDiff}%` : '-'}
+        </div>
       </div>
 
     </div>

@@ -2,7 +2,7 @@ import React, { useContext, useMemo } from 'react';
 import { SimulationContext } from '../context/SimulationContext';
 import { calculateFitness } from '../utils/Algorithms';
 import GridVisualizer from '../components/GridVisualizer';
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { Download, Award, TrendingUp, AlertTriangle } from 'lucide-react';
 
 const ResultsPage = () => {
@@ -108,12 +108,11 @@ const ResultsPage = () => {
                     <Pie
                       data={pieData}
                       cx="50%"
-                      cy="50%"
+                      cy="45%"
                       innerRadius={60}
-                      outerRadius={90}
+                      outerRadius={80}
                       paddingAngle={5}
                       dataKey="value"
-                      label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -121,6 +120,13 @@ const ResultsPage = () => {
                     </Pie>
                     <RechartsTooltip 
                       contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#f8fafc' }}
+                      formatter={(value, name, props) => [`${value} pts`, name]}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36} 
+                      iconType="circle" 
+                      wrapperStyle={{ fontSize: '12px', color: '#cbd5e1', paddingTop: '20px' }} 
                     />
                   </PieChart>
                 </ResponsiveContainer>
