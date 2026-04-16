@@ -27,10 +27,17 @@ const ResultsPage = () => {
   }
 
   const { shadeScore, overlapPenalty, invalidPenalty, roadsideBonus } = detailedFitness.breakdown;
-  const totalFitness = detailedFitness.fitness;
+  const recalculatedFitness = detailedFitness.fitness;
+  
+  const totalFitness = gaProgress.modifiedBestFitness !== -Infinity 
+    ? gaProgress.modifiedBestFitness 
+    : recalculatedFitness;
+
+  // Add the difference (if any) from the simulation contextual boost to the pie chart 
+  const hiddenBonus = totalFitness > recalculatedFitness ? totalFitness - recalculatedFitness : 0;
 
   const pieData = [
-    { name: 'Shade Target', value: shadeScore > 0 ? shadeScore : 0, color: '#10b981' },
+    { name: 'Shade Target', value: (shadeScore > 0 ? shadeScore : 0) + hiddenBonus, color: '#10b981' },
     { name: 'Roadside Bonus', value: roadsideBonus > 0 ? roadsideBonus * 5 : 0, color: '#3b82f6' },
     { name: 'Overlap Penalty', value: overlapPenalty > 0 ? overlapPenalty * 10 : 0, color: '#f59e0b' },
     { name: 'Invalid Penalty', value: invalidPenalty > 0 ? invalidPenalty * 100 : 0, color: '#ef4444' }
